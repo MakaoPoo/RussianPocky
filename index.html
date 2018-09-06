@@ -1,10 +1,32 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <title>ロシアンポッキー</title>
+  <!-- <link rel="shortcut icon" href="resource/icons/favicon.ico"> -->
+  <!-- <link rel="manifest" href="manifest.json"> -->
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/0.3.9/peer.min.js"></script>
+  <!-- <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+      // console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }).catch(function(err) {
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  }
+  </script> -->
 </head>
 <body>
-  
+  <canvas id="game"></canvas>
+
+  <canvas id="loadingText"></canvas>
+
+  <script src="js/Pocky.js"></script>
+  <script src="js/WebRTC.js"></script>
+  <link rel="stylesheet" href="css/loadingText.css?0903">
+  <script src="js/loadingText.js"></script>
 </body>
 </html>
