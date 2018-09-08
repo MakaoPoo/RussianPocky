@@ -21,10 +21,20 @@
 </head>
 <body>
   <div id="peer_id_label">id</div>
-  <input id="peer_id_input" type="text" placeholder="id"></div>
-  <input id="connect_btn" type="button" value="接続">
-  <input id="message_input" type="text" placeholder="メッセージ"></div>
-  <input id="send_msg_btn" type="button" value="送信">
+  <div class="input_wrapper" id="peeid_input_wrapper">
+    <input id="peer_id_input" type="text" placeholder="id">
+    <input id="connect_btn" type="button" value="接続">
+  </div>
+  <div class="input_wrapper" id="room_input_wrapper">
+    <input id="room_name_input" type="text" placeholder="ルーム名">
+    <input id="join_btn" type="button" value="入室">
+    <input id="close_btn" type="button" value="退室">
+  </div>
+  <div class="input_wrapper" id="msg_input_wrapper">
+    <input id="message_input" type="text" placeholder="メッセージ">
+    <input id="send_msg_btn" type="button" value="送信">
+  </div>
+
   <div id="log"></div>
   <!-- <canvas id="game"></canvas> -->
 
