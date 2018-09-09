@@ -52,6 +52,7 @@ $('#close_btn').on('click', function() {
 $('#send_msg_btn').on('click', function() {
   let message = $('#message_input').val();
   webRTC.sendData("msg", message);
+  $('#message_input').val("");
 });
 
 $(window).on('unload', function() {

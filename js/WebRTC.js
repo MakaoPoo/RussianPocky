@@ -99,20 +99,19 @@ class WebRTC {
 
   joinRoom(roomName) {
     if(this.peer == null || this.peer.isDisconnected) {
+      alert("Skywayに接続されていません");
       console.log("Skywayに接続されていません");
       return;
     }
     if(roomName == "") {
+      alert("ルーム名が入力されていません");
       console.log("ルーム名が入力されていません");
       return;
     }
     if(this.room != null) {
-      if(this.room.name === roomName) {
-        console.log(roomName + "には既に入室しています");
-        return;
-      }else {
-        this.closeRoom();
-      }
+      alert(this.room.name + "に入室しています");
+      console.log(this.room.name + "には既に入室しています");
+      return;
     }
     this.room = this.peer.joinRoom(roomName);
 
@@ -157,6 +156,7 @@ class WebRTC {
 
   sendData(inType, inData) {
     if(this.room == null) {
+      alert("ルームに入室していません");
       console.log("ルームに入室していません");
       return;
     }
