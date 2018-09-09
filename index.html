@@ -20,7 +20,7 @@
   </script>
 </head>
 <body>
-  <div id="peer_id_label">id</div>
+  <p id="peer_id_label">ID:</p>
   <div class="input_wrapper" id="peeid_input_wrapper">
     <input id="peer_id_input" type="text" placeholder="id">
     <input id="connect_btn" type="button" value="接続">
@@ -35,14 +35,17 @@
     <input id="send_msg_btn" type="button" value="送信">
   </div>
 
-  <div id="log"></div>
+  <div id="log_wrapper">
+    <div id="log"></div>
+  </div>
   <!-- <canvas id="game"></canvas> -->
 
   <canvas id="loadingText"></canvas>
 
-  <script src="js/Pocky.js"></script>
   <script src="js/WebRTC.js"></script>
-  <link rel="stylesheet" href="css/loadingText.css?0903">
   <script src="js/loadingText.js"></script>
+  <script src="js/Pocky.js"></script>
+  <link rel="stylesheet" href="css/Pocky.css?0903">
+  <link rel="stylesheet" href="css/loadingText.css?0903">
 </body>
 </html>
