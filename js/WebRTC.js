@@ -243,8 +243,8 @@ class WebRTC {
   }
 
   destroyPeer() {
-    this.closeRoom();
-    if(this.peer != null && !this.peer.isDisconnected) {
+    this.room = null;
+    if(this.peer != null) {
       this.trigger("destroy");
       this.peer.disconnect();
       this.peer.destroy();
