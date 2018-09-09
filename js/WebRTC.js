@@ -1,32 +1,46 @@
 class WebRTC {
   constructor() {
     this.peer = null;
+    this.peerProcessing = false;
     // this.lobby = null;
     // this.roomList = {};
     this.room = null;
+    this.roomProcessing = false;
     this.memberList = {};
     this.messageList = [];
     this.callback = {};
   }
 
   connectSkyway(id, callback = {}) {
+    if(this.checkProcessing()) {
+      return;
+    }
     if(this.peer != null) {
       alert(this.peer.id + "で接続しています");
       console.log(this.peer.id + "で接続しています");
       return;
     }
+
+    this.peerProcessing = true;
     this.peer = new Peer(id,
       { key: 'ec4d0c86-ae0b-4313-b813-2b0511a60a42' }
     );
 
     let webRTC = this;
     this.peer.on('open', function(data_id) {
+      webRTC.peerProcessing = false;
       console.log("Skywayに接続");
       console.log('あなたのID: ' + data_id);
 
       webRTC.trigger("connect", this);
+
+      this.on('close', function() {
+        webRTC.peerProcessing = false;
+      });
     });
     this.peer.on('error', function(err) {
+      webRTC.peerProcessing = false;
+      webRTC.roomProcessing = false;
       switch(err.type) {
         case "invalid-key":
         alert("APIキーが不正です");
@@ -95,6 +109,9 @@ class WebRTC {
   // }
 
   joinRoom(roomName) {
+    if(this.checkProcessing()) {
+      return;
+    }
     if(this.peer == null || this.peer.isDisconnected) {
       alert("Skywayに接続されていません");
       console.log("Skywayに接続されていません");
@@ -110,10 +127,13 @@ class WebRTC {
       console.log(this.room.name + "に入室しています");
       return;
     }
+    this.roomProcessing = true;
+    this.initDataList();
     this.room = this.peer.joinRoom(roomName);
 
     let webRTC = this;
     this.room.on('open', function() {
+      webRTC.roomProcessing = false;
       webRTC.openRoom();
       this.on('data', function(data) {
         webRTC.categorizeData(data);
@@ -124,6 +144,9 @@ class WebRTC {
       this.on('peerLeave', function(id) {
         webRTC.deleteMember(id);
       })
+      this.on('close', function() {
+        webRTC.roomProcessing = false;
+      });
       this.on('log', function(logList) {
         for(let logJson of logList) {
           let log = JSON.parse(logJson);
@@ -146,12 +169,18 @@ class WebRTC {
   }
 
   updateRoomData() {
+    if(this.checkProcessing()) {
+      return;
+    }
     if(this.room != null) {
       this.room.getLog();
     }
   }
 
   sendData(inType, inData) {
+    if(this.checkProcessing()) {
+      return;
+    }
     if(this.room == null) {
       alert("ルームに入室していません");
       console.log("ルームに入室していません");
@@ -172,6 +201,9 @@ class WebRTC {
   }
 
   addMember(id) {
+    if(this.checkProcessing()) {
+      return;
+    }
     let data = {
       type: "msg",
       data: "入室"
@@ -186,6 +218,9 @@ class WebRTC {
   }
 
   deleteMember(id) {
+    if(this.checkProcessing()) {
+      return;
+    }
     let data = {
       type: "msg",
       data: "退室"
@@ -200,6 +235,9 @@ class WebRTC {
   }
 
   categorizeData(message) {
+    if(this.checkProcessing()) {
+      return;
+    }
     switch(message.data.type) {
       case "msg":
       this.messageList.push({
@@ -231,11 +269,12 @@ class WebRTC {
   }
 
   closeRoom() {
-    for(var member in this.memberList){
-      delete this.memberList[member];
+    if(this.checkProcessing()) {
+      return;
     }
-    this.messageList.splice(0, this.messageList.length);
     if(this.room != null) {
+      webRTC.roomProcessing = true;
+      this.initDataList();
       this.trigger("close");
       this.room.close();
       this.room = null;
@@ -243,13 +282,39 @@ class WebRTC {
   }
 
   destroyPeer() {
-    this.room = null;
+    if(this.checkProcessing()) {
+      return;
+    }
     if(this.peer != null) {
+      webRTC.peerProcessing = true;
+      this.initDataList();
       this.trigger("destroy");
       this.peer.disconnect();
       this.peer.destroy();
       this.peer = null;
+      this.room = null;
     }
+  }
+
+  checkProcessing() {
+    if(this.peerProcessing) {
+      alert("Peerの処理中です");
+      console.log("Peerの処理中です");
+      return true;
+    }
+    if(this.roomProcessing) {
+      alert("Roomの処理中です");
+      console.log("Roomの処理中です");
+      return true;
+    }
+    return false;
+  }
+
+  initDataList() {
+    for(var member in this.memberList){
+      delete this.memberList[member];
+    }
+    this.messageList.splice(0, this.messageList.length);
   }
 
   getPeerID() {

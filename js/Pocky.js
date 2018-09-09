@@ -32,6 +32,7 @@ webRTC.on('connect', function(peer) {
 
 webRTC.on('destroy', function() {
   $('#peer_id_label').text("ID:");
+  $('#log').empty();
 });
 
 $('#connect_btn').on('click', function() {
@@ -45,12 +46,9 @@ $('#disconnect_btn').on('click', function() {
 
 $('#join_btn').on('click', function() {
   let roomName = $('#room_name_input').val();
-  webRTC.joinRoom(roomName, {
-
-  })
+  webRTC.joinRoom(roomName);
 });
 
-  webRTC.closeRoom();
 $('#close_btn').on('click', function() {
   webRTC.closeRoom();
 });
