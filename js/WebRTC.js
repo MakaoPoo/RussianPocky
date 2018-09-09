@@ -11,12 +11,9 @@ class WebRTC {
 
   connectSkyway(id, callback = {}) {
     if(this.peer != null) {
-      if(this.peer.id === id) {
-        console.log(id + "で既に接続しています");
-        return;
-      }else {
-        this.destroyPeer();
-      }
+      alert(this.peer.id + "で接続しています");
+      console.log(this.peer.id + "で接続しています");
+      return;
     }
     this.peer = new Peer(id,
       { key: 'ec4d0c86-ae0b-4313-b813-2b0511a60a42' }
@@ -110,7 +107,7 @@ class WebRTC {
     }
     if(this.room != null) {
       alert(this.room.name + "に入室しています");
-      console.log(this.room.name + "には既に入室しています");
+      console.log(this.room.name + "に入室しています");
       return;
     }
     this.room = this.peer.joinRoom(roomName);

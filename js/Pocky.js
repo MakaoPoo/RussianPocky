@@ -39,12 +39,18 @@ $('#connect_btn').on('click', function() {
   webRTC.connectSkyway(peerID);
 });
 
+$('#disconnect_btn').on('click', function() {
+  webRTC.destroyPeer();
+});
+
 $('#join_btn').on('click', function() {
   let roomName = $('#room_name_input').val();
   webRTC.joinRoom(roomName, {
 
   })
 });
+
+  webRTC.closeRoom();
 $('#close_btn').on('click', function() {
   webRTC.closeRoom();
 });
