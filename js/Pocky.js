@@ -9,7 +9,7 @@ webRTC.on('message', function(data) {
   for(let msg of data) {
     let myID = webRTC.getPeerID();
     let msgP = $('<p>');
-    msgP.text+msg.src+": "+msg.msg);
+    msgP.text(msg.src+": "+msg.msg);
     if(myID == msg.src) {
       msgP.addClass("my_message");
     }
