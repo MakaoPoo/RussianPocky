@@ -9,6 +9,7 @@
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
   <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
   <script type="text/javascript" src="https://cdn.webrtc.ecl.ntt.com/skyway-latest.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.5.0/firebase.js"></script>
   <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js').then(function(registration) {
@@ -19,31 +20,68 @@
   }
   </script>
 </head>
-<body>
-  <p id="peer_id_label">ID:</p>
-  <div class="input_wrapper" id="peeid_input_wrapper">
-    <input id="peer_id_input" type="text" placeholder="id">
-    <input id="connect_btn" type="button" value="接続">
-    <input id="disconnect_btn" type="button" value="切断">
-  </div>
-  <div class="input_wrapper" id="room_input_wrapper">
-    <input id="room_name_input" type="text" placeholder="ルーム名">
-    <input id="join_btn" type="button" value="入室">
-    <input id="close_btn" type="button" value="退室">
-  </div>
-  <div class="input_wrapper" id="msg_input_wrapper">
-    <input id="message_input" type="text" placeholder="メッセージ">
-    <input id="send_msg_btn" type="button" value="送信">
-  </div>
 
-  <div id="log_wrapper">
-    <div id="log"></div>
+<body>
+  <header>
+    <div class="login_data">
+      <p id="user_id_label">ID</p>
+      <input id="disconnect_btn" type="button" value="切断">
+    </div>
+  </header>
+  <div class="page" id="login_page">
+    <div class="input_form" id="login_form">
+      <p>ログイン</p>
+      <input id="user_id_input" type="text" placeholder="id">
+      <input id="connect_btn" type="button" value="接続">
+    </div>
+  </div>
+  <div class="page" id="room_page">
+    <div class="room_header room_header-join">
+      <select id="room_name_input">
+        <option value="room1">ルーム1</option>
+        <option value="room2">ルーム2</option>
+        <option value="room3">ルーム3</option>
+        <option value="room4">ルーム4</option>
+      </select>
+      <input id="join_btn" type="button" value="入室">
+    </div>
+    <div class="room_header room_header-close">
+      <p class="room_name" id="room_name_label"></p>
+      <input id="close_btn" type="button" value="退室">
+    </div>
+    <div class="room_wrapper">
+      <div class="room_member_list_scroll">
+        <div class="room_member_list">
+        </div>
+      </div>
+      <div class="setting_wrapper">
+        <div class="range_wrapper">
+          <input class="left_btn" id="honsu_left_btn" type="button" value="◀">
+          <p>ポッキーの本数</p>
+          <input class="right_btn" id="honsu_right_btn" type="button" value="▶">
+          <p class="range_label" id="honsu_range_label">20</p>
+          <input id="honsu_range" type="range" min="20" max="100" value="20" />
+        </div>
+        <div class="range_wrapper">
+          <input class="left_btn" id="hazure_left_btn" type="button" value="◀">
+          <p>ハズレの本数</p>
+          <input class="right_btn" id="hazure_right_btn" type="button" value="▶">
+          <p class="range_label" id="hazure_range_label">2</p>
+          <input id="hazure_range" type="range" min="2" max="92" value="2" />
+        </div>
+        <div class="radio_wrapper">
+          <p>順番</p>
+          <input type="radio" name="turn" value="random" checked>ランダム
+          <input type="radio" name="turn" value="kotei">固定
+        </div>
+        <input id="ready_btn" type="button" value="Ready">
+      </div>
+    </div>
   </div>
   <!-- <canvas id="game"></canvas> -->
 
   <canvas id="loadingText"></canvas>
 
-  <script src="js/WebRTC.js"></script>
   <script src="js/loadingText.js"></script>
   <script src="js/Pocky.js"></script>
   <link rel="stylesheet" href="css/Pocky.css?09093">

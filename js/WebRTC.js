@@ -2,12 +2,9 @@ class WebRTC {
   constructor() {
     this.peer = null;
     this.peerProcessing = false;
-    // this.lobby = null;
-    // this.roomList = {};
     this.room = null;
     this.roomProcessing = false;
     this.memberList = {};
-    this.messageList = [];
     this.callback = {};
   }
 
@@ -22,12 +19,13 @@ class WebRTC {
     }
 
     this.peerProcessing = true;
-    this.peer = new Peer(id,
+    let peer = new Peer(id,
       { key: 'ec4d0c86-ae0b-4313-b813-2b0511a60a42' }
     );
 
     let webRTC = this;
-    this.peer.on('open', function(data_id) {
+    peer.on('open', function(data_id) {
+      webRTC.peer = this;
       webRTC.peerProcessing = false;
       console.log("Skywayに接続");
       console.log('あなたのID: ' + data_id);
@@ -35,10 +33,12 @@ class WebRTC {
       webRTC.trigger("connect", this);
 
       this.on('close', function() {
+        webRTC.room = null;
+        webRTC.peer = null;
         webRTC.peerProcessing = false;
       });
     });
-    this.peer.on('error', function(err) {
+    peer.on('error', function(err) {
       webRTC.peerProcessing = false;
       webRTC.roomProcessing = false;
       switch(err.type) {
@@ -64,6 +64,7 @@ class WebRTC {
 
         default:
         console.log(err.type);
+        console.log(err);
       }
       webRTC.trigger("error", err.type);
       webRTC.destroyPeer();
@@ -108,7 +109,7 @@ class WebRTC {
   //   });
   // }
 
-  joinRoom(roomName) {
+  joinRoom(roomName, option) {
     if(this.checkProcessing()) {
       return;
     }
@@ -127,14 +128,24 @@ class WebRTC {
       console.log(this.room.name + "に入室しています");
       return;
     }
+
     this.roomProcessing = true;
-    this.initDataList();
-    this.room = this.peer.joinRoom(roomName);
+    let room = this.peer.joinRoom(roomName, {metadata: option});
 
     let webRTC = this;
-    this.room.on('open', function() {
+    room.on('open', function(a) {
+      webRTC.room = this;
       webRTC.roomProcessing = false;
+
+      console.log(this.connections);
+      if(Object.keys(this.connections).length+1 > this._options.metadata.memberMax) {
+        console.log("満員");
+        webRTC.closeRoom();
+      }
+
       webRTC.openRoom();
+      this.getLog();
+
       this.on('data', function(data) {
         webRTC.categorizeData(data);
       });
@@ -145,6 +156,7 @@ class WebRTC {
         webRTC.deleteMember(id);
       })
       this.on('close', function() {
+        webRTC.room = null;
         webRTC.roomProcessing = false;
       });
       this.on('log', function(logList) {
@@ -204,16 +216,11 @@ class WebRTC {
     if(this.checkProcessing()) {
       return;
     }
-    let data = {
-      type: "msg",
-      data: "入室"
-    };
-    let message = {
-      src: id,
-      data: data
-    };
-    this.categorizeData(message);
-    this.memberList[id] = "exist";
+    let memberData = {
+      ready: false,
+      comment: "よろしく"
+    }
+    this.memberList[id] = memberData;
     this.trigger("member", this.memberList);
   }
 
@@ -221,15 +228,6 @@ class WebRTC {
     if(this.checkProcessing()) {
       return;
     }
-    let data = {
-      type: "msg",
-      data: "退室"
-    };
-    let message = {
-      src: id,
-      data: data
-    };
-    this.categorizeData(message);
     delete this.memberList[id];
     this.trigger("member", this.memberList);
   }
@@ -240,11 +238,13 @@ class WebRTC {
     }
     switch(message.data.type) {
       case "msg":
-      this.messageList.push({
-        src: message.src,
-        msg: message.data.data
-      });
-      this.trigger("message", this.messageList);
+      this.memberList[message.src].comment = message.data.data;
+      this.trigger("message", this.memberList);
+      break;
+
+      case "ready_flag":
+      this.memberList[message.src].ready = message.data.data;
+      this.trigger("ready_flag", this.memberList);
       break;
     }
   }
@@ -265,7 +265,6 @@ class WebRTC {
     if(this.room != null) {
       this.trigger("open", this.room);
     }
-    this.room.getLog();
   }
 
   closeRoom() {
@@ -274,10 +273,8 @@ class WebRTC {
     }
     if(this.room != null) {
       webRTC.roomProcessing = true;
-      this.initDataList();
       this.trigger("close");
       this.room.close();
-      this.room = null;
     }
   }
 
@@ -287,12 +284,10 @@ class WebRTC {
     }
     if(this.peer != null) {
       webRTC.peerProcessing = true;
-      this.initDataList();
+      this.trigger("close");
       this.trigger("destroy");
       this.peer.disconnect();
       this.peer.destroy();
-      this.peer = null;
-      this.room = null;
     }
   }
 
@@ -310,13 +305,6 @@ class WebRTC {
     return false;
   }
 
-  initDataList() {
-    for(var member in this.memberList){
-      delete this.memberList[member];
-    }
-    this.messageList.splice(0, this.messageList.length);
-  }
-
   getPeerID() {
     if(this.peer != null) {
       return this.peer.id;
@@ -324,17 +312,18 @@ class WebRTC {
     return null;
   }
 
-  get roomMember() {
+  getRoomMember() {
     if(this.room != null) {
       return this.memberList;
     }
     return {};
   }
 
-  get roomMessage() {
-    if(this.room != null) {
-      return this.messageList;
-    }
-    return new Array(0);
+  getPeer() {
+    return this.peer;
+  }
+
+  getRoom() {
+    return this.room;
   }
 }
