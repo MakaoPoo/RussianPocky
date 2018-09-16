@@ -24,11 +24,9 @@ $(window).on('load', function() {
   let database = firebase.database();
   database.ref('/users').on('value', function(snapshot) {
     data.users = snapshot.val();
-    console.log("users", snapshot.val());
   });
   database.ref('/rooms').on('value', function(snapshot) {
     data.rooms = snapshot.val();
-    console.log("rooms", snapshot.val());
   });
 });
 
@@ -71,33 +69,51 @@ $('#disconnect_btn').on('click', function() {
 $('#join_btn').on('click', function() {
   roomID = $('#room_name_input').val();
   let membersData = firebase.database().ref('members/'+roomID);
-  let roomsData = firebase.database().ref('rooms/'+roomID);
 
   membersData.once('value')
   .then(function(snapshot) {
     data.members = snapshot.val();
     if(data.members == null) {
-      return true;
+      return 0;
     }
     if(data.rooms == null || data.rooms[roomID] == null) {
-      return true;
+      return 0;
     }
     let memberNum = Object.keys(data.members).length;
-    let room = data.rooms[roomID];
-    if(memberNum >= room.max) {
-      alert("ルームが満員です");
-      return false;
-    }
-    console.log("memberNum", memberNum);
-    return true;
+    return memberNum;
   })
-  .then(function(canJoin) {
-    if(!canJoin) {
-      return;
+  .then(function(memberNum) {
+    if(data.rooms == null || data.rooms[roomID] == null) {
+      let room = data.rooms[roomID];
+      if(memberNum >= room.max) {
+        alert("ルームが満員です");
+        return;
+      }
     }
 
-    roomsData.update({
-      max: 2
+    let roomsData = firebase.database().ref('rooms/'+roomID);
+    let gameSetting = firebase.database().ref('gameSetting/'+roomID);
+
+    if(memberNum == 0) {
+      roomsData.update({
+        max: 4
+      });
+      gameSetting.update({
+        honsu: 20,
+        hazure: 2,
+        junban: "random"
+      });
+    }
+
+    gameSetting.on('value', function(snapshot) {
+      data.gameSetting = snapshot.val();
+
+      $('#honsu_range').val(data.gameSetting.honsu);
+      $('#honsu_range_label').text(data.gameSetting.honsu);
+      $('#hazure_range').val(data.gameSetting.hazure);
+      $('#hazure_range_label').text(data.gameSetting.hazure);
+      $('input[name="junban"]').prop('checked',false);
+      $('input[name="junban"][value="'+data.gameSetting.junban+'"]').prop('checked',true);
     });
 
     membersData.update({
@@ -105,7 +121,6 @@ $('#join_btn').on('click', function() {
     });
     membersData.on('value', function(snapshot) {
       data.members = snapshot.val();
-      console.log("members", snapshot.val());
 
       $('.room_member_list').empty();
       for(let name in data.members) {
@@ -144,6 +159,20 @@ $('input[type="range"]').on('input', function() {
   label.text($(this).val());
 });
 
+$('#honsu_range').on('change', function() {
+  if(roomID != null) {
+    let gameSetting = firebase.database().ref('gameSetting/'+roomID);
+    gameSetting.update({honsu: Number($(this).val())});
+  }
+});
+
+$('#hazure_range').on('change', function() {
+  if(roomID != null) {
+    let gameSetting = firebase.database().ref('gameSetting/'+roomID);
+    gameSetting.update({hazure: Number($(this).val())});
+  }
+});
+
 $('.left_btn').on('click', function() {
   let range = $(this).nextAll('input[type="range"]').first();
   let label = $(this).nextAll('.range_label').first();
@@ -154,6 +183,11 @@ $('.left_btn').on('click', function() {
   }
   range.val(num);
   label.text(num)
+
+  if(roomID == null) {
+    return;
+  }
+  let gameSetting = firebase.database().ref('gameSetting/'+roomID);
 });
 
 $('.right_btn').on('click', function() {
@@ -166,6 +200,18 @@ $('.right_btn').on('click', function() {
   }
   range.val(num);
   label.text(num)
+
+  if(roomID == null) {
+    return;
+  }
+  let gameSetting = firebase.database().ref('gameSetting/'+roomID);
+});
+
+$( 'input[name="junban"]:radio' ).on('change', function() {
+  if(roomID == null) {
+    return;
+  }
+  let gameSetting = firebase.database().ref('gameSetting/'+roomID);
 });
 
 $('#ready_btn').on('click', function() {
@@ -181,6 +227,11 @@ $('#ready_btn').on('click', function() {
   });
 });
 
+$(window).on('pagehide', function() {
+  closeRoom();
+  logout();
+});
+
 $(window).on('unload', function() {
   closeRoom();
   logout();
@@ -190,7 +241,6 @@ function getUsers(){
   let database = firebase.database().ref('/users');
   database.once('value', function(snapshot) {
     users = snapshot.val();
-    console.log("users", snapshot.val());
   });
 }
 
@@ -207,11 +257,14 @@ function closeRoom() {
   }
 
   let membersData = firebase.database().ref('members/'+roomID);
+  let gameSetting = firebase.database().ref('gameSetting/'+roomID);
   membersData.update({
     [userID]: null
   });
   membersData.off('value');
   delete data.members;
+  gameSetting.off('value');
+  delete data.gameSetting;
   roomID = null;
 }
 
