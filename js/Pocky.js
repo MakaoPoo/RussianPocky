@@ -65,7 +65,7 @@ $('#disconnect_btn').on('click', function() {
   $('.page').css("display", "none");
   $('#login_page').css("display", "block");
   $('#user_id_label').text("ID");
-  $('#log').empty();
+  $('.room_member_list').empty();
 });
 
 $('#join_btn').on('click', function() {
