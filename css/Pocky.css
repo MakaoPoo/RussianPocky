@@ -112,7 +112,7 @@ input[type="text"] {
 
 .room_wrapper {
   position: relative;
-  display: flex;
+  display: none;
   text-align: center;
   width: calc(100% - 10px);
   min-width: 220px;

@@ -25,6 +25,7 @@ $(window).on('load', function() {
   database.ref('/users').on('value', function(snapshot) {
     data.users = snapshot.val();
   });
+
   database.ref('/rooms').on('value', function(snapshot) {
     data.rooms = snapshot.val();
   });
@@ -49,6 +50,7 @@ $('#connect_btn').on('click', function() {
   userData.update({
     login: true
   });
+  userData.onDisconnect().set(null);
 
   $('.page').css("display", "none");
   $('#room_page').css("display", "block");
@@ -60,10 +62,6 @@ $('#connect_btn').on('click', function() {
 $('#disconnect_btn').on('click', function() {
   closeRoom();
   logout();
-  $('.page').css("display", "none");
-  $('#login_page').css("display", "block");
-  $('#user_id_label').text("ID");
-  $('.room_member_list').empty();
 });
 
 $('#join_btn').on('click', function() {
@@ -117,8 +115,12 @@ $('#join_btn').on('click', function() {
     });
 
     membersData.update({
-      [userID]:{ready: false}
+      [userID]: {ready: false}
     });
+    membersData.onDisconnect().update({
+      [userID]: null
+    });
+
     membersData.on('value', function(snapshot) {
       data.members = snapshot.val();
 
@@ -142,16 +144,13 @@ $('#join_btn').on('click', function() {
 
     $('.room_header-join').css("display", "none");
     $('.room_header-close').css("display", "block");
+    $('.room_wrapper').css("display", "flex");
     $('#room_name_label').text(roomName);
   });
 });
 
 $('#close_btn').on('click', function() {
   closeRoom();
-
-  $('.room_header-close').css("display", "none");
-  $('.room_header-join').css("display", "block");
-  $('.room_member_list').empty();
 });
 
 $('input[type="range"]').on('input', function() {
@@ -159,18 +158,8 @@ $('input[type="range"]').on('input', function() {
   label.text($(this).val());
 });
 
-$('#honsu_range').on('change', function() {
-  if(roomID != null) {
-    let gameSetting = firebase.database().ref('gameSetting/'+roomID);
-    gameSetting.update({honsu: Number($(this).val())});
-  }
-});
-
-$('#hazure_range').on('change', function() {
-  if(roomID != null) {
-    let gameSetting = firebase.database().ref('gameSetting/'+roomID);
-    gameSetting.update({hazure: Number($(this).val())});
-  }
+$('input[type="range"]').on('change', function() {
+  updateGameSetting($(this));
 });
 
 $('.left_btn').on('click', function() {
@@ -184,10 +173,7 @@ $('.left_btn').on('click', function() {
   range.val(num);
   label.text(num)
 
-  if(roomID == null) {
-    return;
-  }
-  let gameSetting = firebase.database().ref('gameSetting/'+roomID);
+  updateGameSetting(range);
 });
 
 $('.right_btn').on('click', function() {
@@ -201,11 +187,21 @@ $('.right_btn').on('click', function() {
   range.val(num);
   label.text(num)
 
-  if(roomID == null) {
-    return;
-  }
-  let gameSetting = firebase.database().ref('gameSetting/'+roomID);
+  updateGameSetting(range);
 });
+
+function updateGameSetting(range) {
+  if(roomID != null) {
+    let gameSetting = firebase.database().ref('gameSetting/'+roomID);
+    let num = Number(range.val());
+    if(range.attr("id") == "honsu_range") {
+      gameSetting.update({honsu: num});
+    }
+    if(range.attr("id") == "hazure_range") {
+      gameSetting.update({hazure: num});
+    }
+  }
+}
 
 $( 'input[name="junban"]:radio' ).on('change', function() {
   if(roomID == null) {
@@ -225,16 +221,6 @@ $('#ready_btn').on('click', function() {
   membersData.update({
     [userID]:{ready: !ready}
   });
-});
-
-$(window).on('pagehide', function() {
-  closeRoom();
-  logout();
-});
-
-$(window).on('unload', function() {
-  closeRoom();
-  logout();
 });
 
 function getUsers(){
@@ -261,11 +247,17 @@ function closeRoom() {
   membersData.update({
     [userID]: null
   });
+  membersData.onDisconnect().cancel();
   membersData.off('value');
   delete data.members;
   gameSetting.off('value');
   delete data.gameSetting;
   roomID = null;
+
+  $('.room_header-close').css("display", "none");
+  $('.room_header-join').css("display", "block");
+  $('.room_wrapper').css("display", "none");
+  $('.room_member_list').empty();
 }
 
 function logout() {
@@ -274,5 +266,11 @@ function logout() {
   }
   let userData = firebase.database().ref('users/'+userID);
   userData.set(null);
+  userData.onDisconnect().cancel();
   userID = null;
+
+  $('.page').css("display", "none");
+  $('#login_page').css("display", "block");
+  $('#user_id_label').text("ID");
+  $('.room_member_list').empty();
 }
